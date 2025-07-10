@@ -1,11 +1,10 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8" />
     <title>Globe</title>
     <style>
-      html, body { margin: 0; padding: 0; overflow: hidden; }
+      html, body { margin: 0; padding: 0; overflow: hidden; background: #111; }
       canvas { display: block; }
     </style>
   </head>
@@ -18,7 +17,10 @@
 
     <script>
       const world = Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .globeImageUrl('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/img/earth-night.jpg') // lighter than earth-dark.jpg
+        .backgroundColor('#111') // dark grey instead of black
+        .atmosphereColor('#ffffff') // white glow instead of blue
+        .atmosphereAltitude(0.2) // soft glow
         .labelsData([
           {
             lat: 48.8566,
@@ -36,6 +38,10 @@
         .labelDotRadius(0.3)
         .labelResolution(2)
         (document.getElementById('globeViz'));
+
+      // Optional: enable smooth auto-rotation
+      world.controls().autoRotate = true;
+      world.controls().autoRotateSpeed = 0.4;
     </script>
   </body>
 </html>

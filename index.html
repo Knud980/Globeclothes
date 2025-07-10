@@ -1,0 +1,41 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Globe</title>
+    <style>
+      html, body { margin: 0; padding: 0; overflow: hidden; }
+      canvas { display: block; }
+    </style>
+  </head>
+  <body>
+    <div id="globeViz" style="width: 100vw; height: 100vh;"></div>
+
+    <!-- Globe.gl and dependencies -->
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+
+    <script>
+      const world = Globe()
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
+        .labelsData([
+          {
+            lat: 48.8566,
+            lng: 2.3522,
+            name: "Paris",
+            link: "https://example.com"
+          }
+        ])
+        .labelText(d => d.name)
+        .labelLat(d => d.lat)
+        .labelLng(d => d.lng)
+        .onLabelClick(d => window.open(d.link, "_blank"))
+        .labelSize(1.2)
+        .labelColor(() => 'white')
+        .labelDotRadius(0.3)
+        .labelResolution(2)
+        (document.getElementById('globeViz'));
+    </script>
+  </body>
+</html>

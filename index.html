@@ -1,41 +1,111 @@
-<!-- index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <meta charset="utf-8" />
-    <title>Globe</title>
+    <meta charset="UTF-8" />
+    <title>Greyscale Globe</title>
     <style>
-      html, body { margin: 0; padding: 0; overflow: hidden; }
-      canvas { display: block; }
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: black;
+      }
+      canvas {
+        display: block;
+      }
     </style>
   </head>
   <body>
     <div id="globeViz" style="width: 100vw; height: 100vh;"></div>
 
-    <!-- Globe.gl and dependencies -->
+    <!-- Include dependencies -->
     <script src="https://unpkg.com/three"></script>
     <script src="https://unpkg.com/globe.gl"></script>
 
     <script>
-      const world = Globe()
+      const globeContainer = document.getElementById('globeViz');
+
+      // Sample markers
+      const markers = [
+        { lat: 40.7128, lng: -74.0060, name: 'New York', link: 'https://example.com/ny' },
+        { lat: 35.6762, lng: 139.6503, name: 'Tokyo', link: 'https://example.com/tokyo' },
+        { lat: 48.8566, lng: 2.3522, name: 'Paris', link: 'https://example.com/paris' },
+        { lat: -33.8688, lng: 151.2093, name: 'Sydney', link: 'https://example.com/sydney' },
+        { lat: -33.9249, lng: 18.4241, name: 'Cape Town', link: 'https://example.com/cape-town' },
+      ];
+
+      const globe = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
-        .labelsData([
-          {
-            lat: 48.8566,
-            lng: 2.3522,
-            name: "Paris",
-            link: "https://example.com"
+        .backgroundColor('black')
+        .showAtmosphere(false)
+        (globeContainer);
+
+      // Make globe rotate slowly
+      globe.controls().autoRotate = true;
+      globe.controls().autoRotateSpeed = 0.5;
+
+      // Add lines + labels manually
+      const scene = globe.scene();
+
+      markers.forEach(marker => {
+        const radius = globe.getGlobeRadius?.() || 100;
+
+        // Convert lat/lon to XYZ
+        const phi = (90 - marker.lat) * Math.PI / 180;
+        const theta = (marker.lng + 180) * Math.PI / 180;
+        const x = radius * Math.sin(phi) * Math.cos(theta);
+        const y = radius * Math.cos(phi);
+        const z = radius * Math.sin(phi) * Math.sin(theta);
+
+        // End of the line (floating label)
+        const lineLength = 40;
+        const labelX = x * 1.4;
+        const labelY = y * 1.4;
+        const labelZ = z * 1.4;
+
+        // Line from globe to label
+        const points = [new THREE.Vector3(x, y, z), new THREE.Vector3(labelX, labelY, labelZ)];
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+        const material = new THREE.LineBasicMaterial({ color: 'white', transparent: true, opacity: 0.7 });
+        const line = new THREE.Line(geometry, material);
+        scene.add(line);
+
+        // Label at end of line
+        const loader = new THREE.FontLoader();
+        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+          const textGeometry = new THREE.TextGeometry(marker.name, {
+            font: font,
+            size: 5,
+            height: 0.5
+          });
+          const textMaterial = new THREE.MeshBasicMaterial({ color: 'white' });
+          const text = new THREE.Mesh(textGeometry, textMaterial);
+          text.position.set(labelX, labelY, labelZ);
+          text.lookAt(0, 0, 0); // Make it face the center
+          text.userData = { url: marker.link };
+
+          // Make clickable
+          text.callback = () => window.open(marker.link, "_blank");
+          scene.add(text);
+        });
+      });
+
+      // Simple raycaster to detect clicks on labels
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+      window.addEventListener('click', (event) => {
+        const { innerWidth, innerHeight } = window;
+        mouse.x = (event.clientX / innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, globe.camera());
+        const intersects = raycaster.intersectObjects(scene.children, true);
+        for (const intersect of intersects) {
+          if (intersect.object.callback) {
+            intersect.object.callback();
+            break;
           }
-        ])
-        .labelText(d => d.name)
-        .labelLat(d => d.lat)
-        .labelLng(d => d.lng)
-        .onLabelClick(d => window.open(d.link, "_blank"))
-        .labelSize(1.2)
-        .labelColor(() => 'white')
-        .labelDotRadius(0.3)
-        .labelResolution(2)
-        (document.getElementById('globeViz'));
+        }
+      });
     </script>
   </body>
 </html>

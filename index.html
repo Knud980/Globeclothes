@@ -1,4 +1,3 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html>
   <head>
@@ -36,6 +35,17 @@
         .labelDotRadius(0.3)
         .labelResolution(2)
         (document.getElementById('globeViz'));
+
+      const controls = world.controls();
+
+      // Enable auto-rotation
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 0.3; // slow spin
+
+      // Make user interactions feel faster
+      controls.rotateSpeed = 1.4; // rotation speed with mouse drag
+      controls.zoomSpeed = 1.4;   // zoom speed with scroll or pinch
+      controls.panSpeed = 1.4;    // (not very relevant for a globe but included)
     </script>
   </body>
 </html>

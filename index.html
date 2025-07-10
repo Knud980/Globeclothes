@@ -8,7 +8,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        background: black;
+        background: #111; /* dark grey instead of black */
       }
       canvas {
         display: block;
@@ -35,62 +35,61 @@
       ];
 
       const globe = Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
-        .backgroundColor('black')
+        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg') // lighter than full black
+        .backgroundColor('#111') // dark grey
         .showAtmosphere(false)
         (globeContainer);
 
-      // Make globe rotate slowly
+      // Auto-rotate
       globe.controls().autoRotate = true;
-      globe.controls().autoRotateSpeed = 0.5;
+      globe.controls().autoRotateSpeed = 0.4;
 
-      // Add lines + labels manually
       const scene = globe.scene();
+      const fontLoader = new THREE.FontLoader();
 
-      markers.forEach(marker => {
-        const radius = globe.getGlobeRadius?.() || 100;
+      // Load font once
+      fontLoader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+        markers.forEach(marker => {
+          const radius = globe.getGlobeRadius?.() || 100;
 
-        // Convert lat/lon to XYZ
-        const phi = (90 - marker.lat) * Math.PI / 180;
-        const theta = (marker.lng + 180) * Math.PI / 180;
-        const x = radius * Math.sin(phi) * Math.cos(theta);
-        const y = radius * Math.cos(phi);
-        const z = radius * Math.sin(phi) * Math.sin(theta);
+          // Surface position
+          const phi = (90 - marker.lat) * Math.PI / 180;
+          const theta = (marker.lng + 180) * Math.PI / 180;
+          const x = radius * Math.sin(phi) * Math.cos(theta);
+          const y = radius * Math.cos(phi);
+          const z = radius * Math.sin(phi) * Math.sin(theta);
 
-        // End of the line (floating label)
-        const lineLength = 40;
-        const labelX = x * 1.4;
-        const labelY = y * 1.4;
-        const labelZ = z * 1.4;
+          // Label position in space
+          const offset = 50;
+          const labelX = x * 1.4;
+          const labelY = y * 1.4;
+          const labelZ = z * 1.4;
 
-        // Line from globe to label
-        const points = [new THREE.Vector3(x, y, z), new THREE.Vector3(labelX, labelY, labelZ)];
-        const geometry = new THREE.BufferGeometry().setFromPoints(points);
-        const material = new THREE.LineBasicMaterial({ color: 'white', transparent: true, opacity: 0.7 });
-        const line = new THREE.Line(geometry, material);
-        scene.add(line);
+          // Line
+          const points = [new THREE.Vector3(x, y, z), new THREE.Vector3(labelX, labelY, labelZ)];
+          const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
+          const lineMaterial = new THREE.LineBasicMaterial({ color: 'white', linewidth: 1 });
+          const line = new THREE.Line(lineGeometry, lineMaterial);
+          scene.add(line);
 
-        // Label at end of line
-        const loader = new THREE.FontLoader();
-        loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
+          // Text label
           const textGeometry = new THREE.TextGeometry(marker.name, {
             font: font,
-            size: 5,
-            height: 0.5
+            size: 4,
+            height: 0.5,
+            curveSegments: 4,
+            bevelEnabled: false
           });
           const textMaterial = new THREE.MeshBasicMaterial({ color: 'white' });
           const text = new THREE.Mesh(textGeometry, textMaterial);
           text.position.set(labelX, labelY, labelZ);
-          text.lookAt(0, 0, 0); // Make it face the center
+          text.lookAt(0, 0, 0); // Face the center
           text.userData = { url: marker.link };
-
-          // Make clickable
-          text.callback = () => window.open(marker.link, "_blank");
           scene.add(text);
         });
       });
 
-      // Simple raycaster to detect clicks on labels
+      // Click detection
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
       window.addEventListener('click', (event) => {
@@ -100,8 +99,8 @@
         raycaster.setFromCamera(mouse, globe.camera());
         const intersects = raycaster.intersectObjects(scene.children, true);
         for (const intersect of intersects) {
-          if (intersect.object.callback) {
-            intersect.object.callback();
+          if (intersect.object.userData?.url) {
+            window.open(intersect.object.userData.url, '_blank');
             break;
           }
         }

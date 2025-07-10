@@ -1,109 +1,46 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Globe with Lines</title>
-    <style>
-      html, body {
-        margin: 0;
-        padding: 0;
-        overflow: hidden;
-        background: #111; /* dark background */
-      }
-      canvas {
-        display: block;
-      }
-    </style>
-  </head>
-  <body>
-    <div id="globeViz" style="width: 100vw; height: 100vh;"></div>
+// App.jsx or index.jsx
+import React, { useRef, useEffect } from "react";
+import Globe from "react-globe.gl";
 
-    <!-- Include dependencies -->
-    <script src="https://unpkg.com/three/build/three.min.js"></script>
-    <script src="https://unpkg.com/globe.gl"></script>
+export default function GlobeView() {
+  const globeRef = useRef();
 
-    <script>
-      const globeContainer = document.getElementById('globeViz');
+  const markers = [
+    {
+      lat: 48.8566,
+      lng: 2.3522,
+      name: "Paris",
+      link: "https://example.com/paris"
+    },
+    {
+      lat: 40.7128,
+      lng: -74.006,
+      name: "New York",
+      link: "https://example.com/ny"
+    }
+  ];
 
-      const markers = [
-        { lat: 40.7128, lng: -74.0060, name: 'New York', link: 'https://example.com/ny' },
-        { lat: 35.6762, lng: 139.6503, name: 'Tokyo', link: 'https://example.com/tokyo' },
-        { lat: 48.8566, lng: 2.3522, name: 'Paris', link: 'https://example.com/paris' },
-        { lat: -33.8688, lng: 151.2093, name: 'Sydney', link: 'https://example.com/sydney' },
-        { lat: -33.9249, lng: 18.4241, name: 'Cape Town', link: 'https://example.com/cape-town' }
-      ];
+  useEffect(() => {
+    if (globeRef.current) {
+      globeRef.current.controls().autoRotate = true;
+      globeRef.current.controls().autoRotateSpeed = 0.3;
+    }
+  }, []);
 
-      const globe = Globe()
-        .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
-        .backgroundColor('#111')
-        .showAtmosphere(false)
-        (globeContainer);
-
-      globe.controls().autoRotate = true;
-      globe.controls().autoRotateSpeed = 0.4;
-
-      const scene = globe.scene();
-      const camera = globe.camera();
-
-      // Load font once
-      const loader = new THREE.FontLoader();
-      loader.load('https://threejs.org/examples/fonts/helvetiker_regular.typeface.json', function (font) {
-        markers.forEach(marker => {
-          const R = 100; // Globe radius (default in Globe.gl)
-
-          // Convert lat/lon to XYZ
-          const phi = (90 - marker.lat) * Math.PI / 180;
-          const theta = (marker.lng + 180) * Math.PI / 180;
-          const x = R * Math.sin(phi) * Math.cos(theta);
-          const y = R * Math.cos(phi);
-          const z = R * Math.sin(phi) * Math.sin(theta);
-
-          // End of line
-          const scale = 1.5;
-          const tx = x * scale;
-          const ty = y * scale;
-          const tz = z * scale;
-
-          // Line geometry
-          const points = [new THREE.Vector3(x, y, z), new THREE.Vector3(tx, ty, tz)];
-          const lineGeometry = new THREE.BufferGeometry().setFromPoints(points);
-          const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff });
-          const line = new THREE.Line(lineGeometry, lineMaterial);
-          scene.add(line);
-
-          // Text label
-          const textGeometry = new THREE.TextGeometry(marker.name, {
-            font: font,
-            size: 4,
-            height: 0.5
-          });
-          const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-          const textMesh = new THREE.Mesh(textGeometry, textMaterial);
-          textMesh.position.set(tx, ty, tz);
-          textMesh.lookAt(0, 0, 0);
-          textMesh.userData = { url: marker.link };
-          scene.add(textMesh);
-        });
-      });
-
-      // Raycaster for click detection
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-      window.addEventListener('click', (event) => {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-        mouse.x = (event.clientX / width) * 2 - 1;
-        mouse.y = -(event.clientY / height) * 2 + 1;
-        raycaster.setFromCamera(mouse, camera);
-        const intersects = raycaster.intersectObjects(scene.children);
-        for (const i of intersects) {
-          const url = i.object?.userData?.url;
-          if (url) {
-            window.open(url, '_blank');
-            break;
-          }
-        }
-      });
-    </script>
-  </body>
-</html>
+  return (
+    <Globe
+      ref={globeRef}
+      globeImageUrl="//unpkg.com/three-globe/example/img/earth-dark.jpg"
+      backgroundColor="rgba(0,0,0,0)"
+      labelsData={markers}
+      labelLat={(d) => d.lat}
+      labelLng={(d) => d.lng}
+      labelText={(d) => d.name}
+      labelSize={1.5}
+      labelColor={() => "white"}
+      labelDotRadius={0.4}
+      labelResolution={2}
+      onLabelClick={(label) => window.open(label.link, "_blank")}
+    />
+  );
+}

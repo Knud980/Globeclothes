@@ -17,10 +17,11 @@
 
     <script>
       const world = Globe()
-        .globeImageUrl('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/img/earth-night.jpg') // lighter than earth-dark.jpg
-        .backgroundColor('#111') // dark grey instead of black
-        .atmosphereColor('#ffffff') // white glow instead of blue
-        .atmosphereAltitude(0.2) // soft glow
+        // Use lighter night texture for grey tone
+        .globeImageUrl('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/img/earth-night.jpg')
+        .backgroundColor('#111') // soft dark grey background
+        .atmosphereColor('#dddddd') // soft white-grey glow
+        .atmosphereAltitude(0.25)   // slightly wider glow effect
         .labelsData([
           {
             lat: 48.8566,
@@ -39,7 +40,7 @@
         .labelResolution(2)
         (document.getElementById('globeViz'));
 
-      // Optional: enable smooth auto-rotation
+      // Smooth auto-rotation
       world.controls().autoRotate = true;
       world.controls().autoRotateSpeed = 0.4;
     </script>

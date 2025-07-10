@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Globe with Stars & Satellite</title>
+    <title>Globe with Stars</title>
     <style>
       html, body { margin: 0; padding: 0; overflow: hidden; background: black; }
       canvas { display: block; }
@@ -16,19 +16,33 @@
     <script src="https://unpkg.com/globe.gl"></script>
 
     <script>
-      // Create globe
       const world = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundColor('black')
         .atmosphereColor('#cccccc')
         .atmosphereAltitude(0.15)
         .labelsData([
-          {
-            lat: 48.8566,
-            lng: 2.3522,
-            name: "Paris",
-            link: "https://example.com"
-          }
+          { lat: 48.8566, lng: 2.3522, name: "Paris", link: "https://example.com/paris" },
+          { lat: 40.7128, lng: -74.0060, name: "New York", link: "https://example.com/new-york" },
+          { lat: 35.6895, lng: 139.6917, name: "Tokyo", link: "https://example.com/tokyo" },
+          { lat: -33.8688, lng: 151.2093, name: "Sydney", link: "https://example.com/sydney" },
+          { lat: 51.5074, lng: -0.1278, name: "London", link: "https://example.com/london" },
+          { lat: 55.7558, lng: 37.6173, name: "Moscow", link: "https://example.com/moscow" },
+          { lat: -23.5505, lng: -46.6333, name: "São Paulo", link: "https://example.com/sao-paulo" },
+          { lat: 52.52, lng: 13.405, name: "Berlin", link: "https://example.com/berlin" },
+          { lat: 19.4326, lng: -99.1332, name: "Mexico City", link: "https://example.com/mexico-city" },
+          { lat: 1.3521, lng: 103.8198, name: "Singapore", link: "https://example.com/singapore" },
+          { lat: 41.9028, lng: 12.4964, name: "Rome", link: "https://example.com/rome" },
+          { lat: 37.7749, lng: -122.4194, name: "San Francisco", link: "https://example.com/sf" },
+          { lat: 39.9042, lng: 116.4074, name: "Beijing", link: "https://example.com/beijing" },
+          { lat: 31.2304, lng: 121.4737, name: "Shanghai", link: "https://example.com/shanghai" },
+          { lat: -34.6037, lng: -58.3816, name: "Buenos Aires", link: "https://example.com/buenos-aires" },
+          { lat: 59.3293, lng: 18.0686, name: "Stockholm", link: "https://example.com/stockholm" },
+          { lat: 43.6532, lng: -79.3832, name: "Toronto", link: "https://example.com/toronto" },
+          { lat: 28.6139, lng: 77.2090, name: "New Delhi", link: "https://example.com/new-delhi" },
+          { lat: 45.4215, lng: -75.6972, name: "Ottawa", link: "https://example.com/ottawa" },
+          { lat: 13.7563, lng: 100.5018, name: "Bangkok", link: "https://example.com/bangkok" },
+          { lat: -1.2921, lng: 36.8219, name: "Nairobi", link: "https://example.com/nairobi" }
         ])
         .labelText(d => d.name)
         .labelLat(d => d.lat)
@@ -46,46 +60,31 @@
       controls.rotateSpeed = 1.4;
       controls.zoomSpeed = 1.4;
 
+      // Add stars to the scene
       const scene = world.scene();
-      const camera = world.camera();
-
-      // Add stars
       const starCount = 1000;
-      const starGeo = new THREE.BufferGeometry();
+      const geometry = new THREE.BufferGeometry();
       const positions = [];
+
       for (let i = 0; i < starCount; i++) {
         const x = (Math.random() - 0.5) * 2000;
         const y = (Math.random() - 0.5) * 2000;
         const z = (Math.random() - 0.5) * 2000;
         positions.push(x, y, z);
       }
-      starGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-      const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, opacity: 0.7 });
-      const stars = new THREE.Points(starGeo, starMaterial);
+
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+
+      const material = new THREE.PointsMaterial({
+        color: 0xffffff,
+        size: 1,
+        sizeAttenuation: true,
+        transparent: true,
+        opacity: 0.7
+      });
+
+      const stars = new THREE.Points(geometry, material);
       scene.add(stars);
-
-      // Add a small satellite cube
-      const satelliteSize = 2;
-      const satelliteGeometry = new THREE.BoxGeometry(satelliteSize, satelliteSize, satelliteSize);
-      const satelliteMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
-      const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
-      scene.add(satellite);
-
-      // Set initial satellite position (slightly above globe)
-      const R = 110; // slightly above Earth's surface
-      let angle = 0;
-
-      function updateSatellitePosition() {
-        angle += 0.005; // rotation speed
-        const x = R * Math.cos(angle);
-        const z = R * Math.sin(angle);
-        const y = 30 * Math.sin(angle * 2); // up/down wobble
-        satellite.position.set(x, y, z);
-        satellite.lookAt(0, 0, 0);
-        requestAnimationFrame(updateSatellitePosition);
-      }
-
-      updateSatellitePosition();
     </script>
   </body>
 </html>

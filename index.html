@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Globe with Stars</title>
+    <title>Globe with Stars & Satellite</title>
     <style>
       html, body { margin: 0; padding: 0; overflow: hidden; background: black; }
       canvas { display: block; }
@@ -19,7 +19,7 @@
       // Create globe
       const world = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
-        .backgroundColor('black') // no solid background, lets stars show
+        .backgroundColor('black')
         .atmosphereColor('#cccccc')
         .atmosphereAltitude(0.15)
         .labelsData([
@@ -46,31 +46,46 @@
       controls.rotateSpeed = 1.4;
       controls.zoomSpeed = 1.4;
 
-      // Add stars to the scene
       const scene = world.scene();
-      const starCount = 1000;
-      const geometry = new THREE.BufferGeometry();
-      const positions = [];
+      const camera = world.camera();
 
+      // Add stars
+      const starCount = 1000;
+      const starGeo = new THREE.BufferGeometry();
+      const positions = [];
       for (let i = 0; i < starCount; i++) {
         const x = (Math.random() - 0.5) * 2000;
         const y = (Math.random() - 0.5) * 2000;
         const z = (Math.random() - 0.5) * 2000;
         positions.push(x, y, z);
       }
-
-      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-      const material = new THREE.PointsMaterial({
-        color: 0xffffff,
-        size: 1,
-        sizeAttenuation: true,
-        transparent: true,
-        opacity: 0.7
-      });
-
-      const stars = new THREE.Points(geometry, material);
+      starGeo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1, opacity: 0.7 });
+      const stars = new THREE.Points(starGeo, starMaterial);
       scene.add(stars);
+
+      // Add a small satellite cube
+      const satelliteSize = 2;
+      const satelliteGeometry = new THREE.BoxGeometry(satelliteSize, satelliteSize, satelliteSize);
+      const satelliteMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+      const satellite = new THREE.Mesh(satelliteGeometry, satelliteMaterial);
+      scene.add(satellite);
+
+      // Set initial satellite position (slightly above globe)
+      const R = 110; // slightly above Earth's surface
+      let angle = 0;
+
+      function updateSatellitePosition() {
+        angle += 0.005; // rotation speed
+        const x = R * Math.cos(angle);
+        const z = R * Math.sin(angle);
+        const y = 30 * Math.sin(angle * 2); // up/down wobble
+        satellite.position.set(x, y, z);
+        satellite.lookAt(0, 0, 0);
+        requestAnimationFrame(updateSatellitePosition);
+      }
+
+      updateSatellitePosition();
     </script>
   </body>
 </html>

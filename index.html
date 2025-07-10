@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Globe</title>
     <style>
-      html, body { margin: 0; padding: 0; overflow: hidden; background: #111; }
+      html, body { margin: 0; padding: 0; overflow: hidden; background: #fff; }
       canvas { display: block; }
     </style>
   </head>
@@ -17,11 +17,10 @@
 
     <script>
       const world = Globe()
-        // Use lighter night texture for grey tone
-        .globeImageUrl('https://raw.githubusercontent.com/vasturiano/globe.gl/master/example/img/earth-night.jpg')
-        .backgroundColor('#111') // soft dark grey background
-        .atmosphereColor('#dddddd') // soft white-grey glow
-        .atmosphereAltitude(0.25)   // slightly wider glow effect
+        .globeImageUrl('map.png') // <-- your Winkel Tripel texture (make sure it's in /public)
+        .backgroundColor('#ffffff') // white background
+        .atmosphereColor('#cccccc') // soft grey glow
+        .atmosphereAltitude(0.15)
         .labelsData([
           {
             lat: 48.8566,
@@ -35,12 +34,11 @@
         .labelLng(d => d.lng)
         .onLabelClick(d => window.open(d.link, "_blank"))
         .labelSize(1.2)
-        .labelColor(() => 'white')
+        .labelColor(() => 'black')
         .labelDotRadius(0.3)
         .labelResolution(2)
         (document.getElementById('globeViz'));
 
-      // Smooth auto-rotation
       world.controls().autoRotate = true;
       world.controls().autoRotateSpeed = 0.4;
     </script>

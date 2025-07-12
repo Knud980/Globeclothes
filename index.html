@@ -16,6 +16,30 @@
     <script src="https://unpkg.com/globe.gl"></script>
 
     <script>
+      // Generate a circular gradient texture for fading effect
+      function createFadingDotTexture(color = '#96ECFF') {
+        const size = 64;
+        const canvas = document.createElement('canvas');
+        canvas.width = canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        const gradient = ctx.createRadialGradient(
+          size / 2, size / 2, 0,
+          size / 2, size / 2, size / 2
+        );
+        gradient.addColorStop(0, color);
+        gradient.addColorStop(1, 'rgba(150, 236, 255, 0)');
+
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+
+        const texture = new THREE.Texture(canvas);
+        texture.needsUpdate = true;
+        return texture;
+      }
+
+      const fadingDotTexture = createFadingDotTexture('#96ECFF');
+
       const world = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundColor('black')
@@ -50,8 +74,14 @@
         .onLabelClick(d => window.open(d.link, "_blank"))
         .labelSize(1.2)
         .labelColor(() => 'white')
-        .labelDotRadius(0.3)
-        .labelResolution(2)
+        .labelDotRadius(2) // a bit bigger to show the gradient
+        .labelDotOrientation(() => 'bottom') // better glow visibility
+        .labelDotMaterial(() => new THREE.PointsMaterial({
+          map: fadingDotTexture,
+          size: 10,
+          transparent: true,
+          depthWrite: false
+        }))
         (document.getElementById('globeViz'));
 
       const controls = world.controls();

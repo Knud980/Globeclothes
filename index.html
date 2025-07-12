@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>Globe with Stars</title>
+    <title>Globe with Stars and Glow Dots</title>
     <style>
       html, body { margin: 0; padding: 0; overflow: hidden; background: black; }
       canvas { display: block; }
@@ -11,13 +11,13 @@
   <body>
     <div id="globeViz" style="width: 100vw; height: 100vh;"></div>
 
-    <!-- Globe.gl and dependencies -->
+    <!-- Dependencies -->
     <script src="https://unpkg.com/three"></script>
     <script src="https://unpkg.com/globe.gl"></script>
 
     <script>
-      // Generate a circular gradient texture for fading effect
-      function createFadingDotTexture(color = '#96ECFF') {
+      // Create fading dot texture
+      function createDotTexture(colorHex = '#96ECFF') {
         const size = 64;
         const canvas = document.createElement('canvas');
         canvas.width = canvas.height = size;
@@ -27,8 +27,8 @@
           size / 2, size / 2, 0,
           size / 2, size / 2, size / 2
         );
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, 'rgba(150, 236, 255, 0)');
+        gradient.addColorStop(0, colorHex);
+        gradient.addColorStop(1, 'rgba(150,236,255,0)');
 
         ctx.fillStyle = gradient;
         ctx.fillRect(0, 0, size, size);
@@ -38,13 +38,16 @@
         return texture;
       }
 
-      const fadingDotTexture = createFadingDotTexture('#96ECFF');
+      const glowTexture = createDotTexture('#96ECFF');
 
       const world = Globe()
         .globeImageUrl('//unpkg.com/three-globe/example/img/earth-dark.jpg')
         .backgroundColor('black')
         .atmosphereColor('#cccccc')
         .atmosphereAltitude(0.15)
+        .labelDotTexture(() => glowTexture)
+        .labelDotRadius(1.5)
+        .labelDotColor(() => '#96ECFF')
         .labelsData([
           { lat: 48.8566, lng: 2.3522, name: "Paris", link: "https://example.com/paris" },
           { lat: 40.7128, lng: -74.0060, name: "New York", link: "https://example.com/new-york" },
@@ -74,14 +77,7 @@
         .onLabelClick(d => window.open(d.link, "_blank"))
         .labelSize(1.2)
         .labelColor(() => 'white')
-        .labelDotRadius(2) // a bit bigger to show the gradient
-        .labelDotOrientation(() => 'bottom') // better glow visibility
-        .labelDotMaterial(() => new THREE.PointsMaterial({
-          map: fadingDotTexture,
-          size: 10,
-          transparent: true,
-          depthWrite: false
-        }))
+        .labelResolution(2)
         (document.getElementById('globeViz'));
 
       const controls = world.controls();
@@ -90,7 +86,7 @@
       controls.rotateSpeed = 1.4;
       controls.zoomSpeed = 1.4;
 
-      // Add stars to the scene
+      // Add stars
       const scene = world.scene();
       const starCount = 1000;
       const geometry = new THREE.BufferGeometry();
